@@ -5,6 +5,10 @@ __pycache__/
 .venv/
 venv/
 
+# Node
+node_modules/
+coverage/
+
 # PyInstaller
 build/
 dist/
@@ -13,3 +17,5 @@ dist/
 .idea/
 .vscode/
 .DS_Store
+CLAUDE.md
+CLAUDE.md
