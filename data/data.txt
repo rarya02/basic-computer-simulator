@@ -1,0 +1,4 @@
+111  FFF8   # CTR,	DEC -8		#This location serves as a counter
+112  000F   # X,	HEX 000F	#Multiplicand stored here
+113  000B   # Y,	HEX 000B	#Multiplier stored here
+114  0000   # P,	HEX O		#Product formed here

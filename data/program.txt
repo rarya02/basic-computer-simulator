@@ -1,0 +1,17 @@
+100  7400   # LOP, 	CLE 		#Clear E
+101  2113   # LDA Y 		#Load multiplier
+102  7080   # CIR		#Transfer multiplier bit to E
+103  3113   # STA Y		#Store shifted multiplier
+104  7002   # SZE		#Check if bit is zero
+105  4107   # BUN ONE 	#Bit is one; go to ONE
+106  410B   # BUN ZRO		#Bit is zero; go to ZRO
+107  2112   # ONE,	LDA X		#Load multiplicand
+108  1114   # ADD P		#Add to partial product
+109  3114   # STA P		#Store partial product
+10A  7400   # CLE		#Clear E
+10B  2112   # ZRO,	LDA X		#Load multiplicand
+10C  7040   # CIL		#Shift left
+10D  3112   # STA X		#Store shifted multiplicand
+10E  6111   # ISZ CTR		#Increment counter
+10F  4100   # BUN LOP		#Counter not zero; repeat loop
+110  7001   # HLT		#Counter is zero; halt
