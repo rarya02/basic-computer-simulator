@@ -1,254 +1,206 @@
 class InstructionSet:
+    """Execute-phase (T3 onward) micro-operations for each instruction.
+
+    Every method returns (micro-op text, changed). `changed` only needs to list
+    memory cells; the machine adds updated registers and flags itself.
+    """
+
     def __init__(self, machine):
-        self.m = machine  # reference to machine instance
+        self.m = machine
+        self._mem_handlers = {
+            0: self._mem_AND,
+            1: self._mem_ADD,
+            2: self._mem_LDA,
+            3: self._mem_STA,
+            4: self._mem_BUN,
+            5: self._mem_BSA,
+            6: self._mem_ISZ,
+        }
 
     def execute_memory_ref(self, opcode: int, T: int):
         changed = set()
-        I = self.m.I.value  # indirect flag
+        indirect = self.m.I.value
 
-        if I == 0 and T == 3:
-            self.m.SC.increment()  # skip indirect cycle
+        if T == 3:
+            if indirect:
+                self.m.AR.load(self.m.memory.read(self.m.AR.value))
+                self.m.SC.increment()
+                return "T3: AR ← M[AR] (indirect)", changed
+            self.m.SC.increment()
             return "T3: (direct address, no micro-op)", changed
 
-        if I == 1 and T == 3:
-            word = self.m.memory.read(self.m.AR.value)  # fetch indirect address
-            self.m.AR.load(word)  # load effective address
-            self.m.SC.increment()
-            return "T3: AR ← M[AR] (indirect)", changed
+        effT = T - 1 if indirect else T  # indirect shifts micro-ops by 1
 
-        if I == 1:
-            effT = T - 1  # indirect shifts micro-ops by 1
-        else:
-            effT = T
+        handler = self._mem_handlers.get(opcode)
+        if handler is None:
+            return f"T{T}: (unknown memory-reference opcode)", changed
+        return handler(effT, T, changed)
 
-        # decode opcode
-        if opcode == 0:
-            return self._mem_AND(effT, T, changed)
-        if opcode == 1:
-            return self._mem_ADD(effT, T, changed)
-        if opcode == 2:
-            return self._mem_LDA(effT, T, changed)
-        if opcode == 3:
-            return self._mem_STA(effT, T, changed)
-        if opcode == 4:
-            return self._mem_BUN(effT, T, changed)
-        if opcode == 5:
-            return self._mem_BSA(effT, T, changed)
-        if opcode == 6:
-            return self._mem_ISZ(effT, T, changed)
-
-        return f"T{T}: (unknown memory-reference opcode)", changed
-
-    # AND instruction
     def _mem_AND(self, effT, T, changed):
         if effT == 4:
-            self.m.DR.load(self.m.memory.read(self.m.AR.value))  # load operand
+            self.m.DR.load(self.m.memory.read(self.m.AR.value))
             self.m.SC.increment()
             return f"T{T}: DR ← M[AR]", changed
 
         if effT == 5:
-            self.m.AC.load(self.m.AC.value & self.m.DR.value)  # perform AND
+            self.m.AC.load(self.m.AC.value & self.m.DR.value)
             self.m.finish_instruction()
             return f"T{T}: AC ← AC ∧ DR", changed
 
         return f"T{T}: (no-op for AND)", changed
 
-    # ADD instruction
     def _mem_ADD(self, effT, T, changed):
         if effT == 4:
-            self.m.DR.load(self.m.memory.read(self.m.AR.value))  # load operand
+            self.m.DR.load(self.m.memory.read(self.m.AR.value))
             self.m.SC.increment()
             return f"T{T}: DR ← M[AR]", changed
 
         if effT == 5:
-            result = self.m.AC.value + self.m.DR.value  # add values
+            result = self.m.AC.value + self.m.DR.value
             self.m.AC.load(result)
-            if result > 0xFFFF:
-                self.m.E.set()  # carry flag
-            else:
-                self.m.E.clear()
+            self.m.E.load(result > 0xFFFF)
             self.m.finish_instruction()
             return f"T{T}: AC ← AC + DR, E ← carry", changed
 
         return f"T{T}: (no-op for ADD)", changed
 
-    # LDA instruction
     def _mem_LDA(self, effT, T, changed):
         if effT == 4:
-            self.m.DR.load(self.m.memory.read(self.m.AR.value))  # read memory
+            self.m.DR.load(self.m.memory.read(self.m.AR.value))
             self.m.SC.increment()
             return f"T{T}: DR ← M[AR]", changed
 
         if effT == 5:
-            self.m.AC.load(self.m.DR.value)  # load into AC
+            self.m.AC.load(self.m.DR.value)
             self.m.finish_instruction()
             return f"T{T}: AC ← DR", changed
 
         return f"T{T}: (no-op for LDA)", changed
 
-    # STA instruction
     def _mem_STA(self, effT, T, changed):
         if effT == 4:
-            self.m.memory.write(self.m.AR.value, self.m.AC.value)  # store AC
+            self.m.memory.write(self.m.AR.value, self.m.AC.value)
             changed.add(f"M[{self.m.AR.value:03X}]")
             self.m.finish_instruction()
             return f"T{T}: M[AR] ← AC", changed
 
         return f"T{T}: (no-op for STA)", changed
 
-    # BUN instruction
     def _mem_BUN(self, effT, T, changed):
         if effT == 4:
-            self.m.PC.load(self.m.AR.value)  # jump to AR
+            self.m.PC.load(self.m.AR.value)
             self.m.finish_instruction()
             return f"T{T}: PC ← AR", changed
 
         return f"T{T}: (no-op for BUN)", changed
 
-    # BSA instruction (store return + jump)
     def _mem_BSA(self, effT, T, changed):
         if effT == 4:
-            self.m.memory.write(self.m.AR.value, self.m.PC.value)  # save return
+            self.m.memory.write(self.m.AR.value, self.m.PC.value)  # save return address
             changed.add(f"M[{self.m.AR.value:03X}]")
-            self.m.AR.load(self.m.AR.value + 1)  # next instruction
+            self.m.AR.load(self.m.AR.value + 1)
             self.m.SC.increment()
             return f"T{T}: M[AR] ← PC, AR ← AR + 1", changed
 
         if effT == 5:
-            self.m.PC.load(self.m.AR.value)  # branch to subroutine
+            self.m.PC.load(self.m.AR.value)
             self.m.finish_instruction()
             return f"T{T}: PC ← AR", changed
 
         return f"T{T}: (no-op for BSA)", changed
 
-    # ISZ instruction
     def _mem_ISZ(self, effT, T, changed):
         if effT == 4:
-            self.m.DR.load(self.m.memory.read(self.m.AR.value))  # read operand
+            self.m.DR.load(self.m.memory.read(self.m.AR.value))
             self.m.SC.increment()
             return f"T{T}: DR ← M[AR]", changed
 
         if effT == 5:
-            self.m.DR.load(self.m.DR.value + 1)  # increment
+            self.m.DR.load(self.m.DR.value + 1)
             self.m.SC.increment()
             return f"T{T}: DR ← DR + 1", changed
 
         if effT == 6:
-            self.m.memory.write(self.m.AR.value, self.m.DR.value)  # store result
+            self.m.memory.write(self.m.AR.value, self.m.DR.value)
             changed.add(f"M[{self.m.AR.value:03X}]")
             micro = f"T{T}: M[AR] ← DR"
-            if (self.m.DR.value & 0xFFFF) == 0:
+            if self.m.DR.value == 0:
                 self.m.PC.increment()  # skip next instruction
-                changed.add("PC")
                 micro += "; if DR = 0 then PC ← PC + 1"
             self.m.finish_instruction()
             return micro, changed
 
         return f"T{T}: (no-op for ISZ)", changed
 
-    # Register-reference instructions
     def execute_register_ref(self, T: int):
         changed = set()
         if T != 3:
             return f"T{T}: (idle for register-reference)", changed
 
-        instr = self.m.IR.value & 0x0FFF  # bottom 12 bits
+        m = self.m
+        instr = m.IR.value & 0x0FFF
         parts = []
 
         def bit(n: int) -> int:
-            return (instr >> n) & 1  # read bit position
+            return (instr >> n) & 1
 
-        # CLA
         if bit(11):
-            self.m.AC.clear()
+            m.AC.clear()
             parts.append("CLA")
-            changed.add("AC")
 
-        # CLE
         if bit(10):
-            self.m.E.clear()
+            m.E.clear()
             parts.append("CLE")
-            changed.add("E")
 
-        # CMA
         if bit(9):
-            self.m.AC.load(~self.m.AC.value)  # invert AC
+            m.AC.load(~m.AC.value)
             parts.append("CMA")
-            changed.add("AC")
 
-        # CME
         if bit(8):
-            self.m.E.complement()
+            m.E.complement()
             parts.append("CME")
-            changed.add("E")
 
-        # CIR (rotate right)
-        if bit(7):
-            combined = (self.m.E.value << 16) | self.m.AC.value
-            lsb = combined & 1
-            combined >>= 1
-            if lsb:
-                self.m.E.set()
-            else:
-                self.m.E.clear()
-            self.m.AC.load(combined)
+        if bit(7):  # rotate right through E
+            combined = (m.E.value << 16) | m.AC.value
+            m.E.load(combined & 1)
+            m.AC.load(combined >> 1)
             parts.append("CIR")
-            changed.update({"AC", "E"})
 
-        # CIL (rotate left)
-        if bit(6):
-            combined = (self.m.E.value << 16) | self.m.AC.value
-            msb = (combined >> 16) & 1
-            combined = (combined << 1) & 0x1FFFF
-            if msb:
-                self.m.E.set()
-            else:
-                self.m.E.clear()
-            self.m.AC.load(combined)
+        if bit(6):  # rotate left through E
+            combined = (m.E.value << 16) | m.AC.value
+            m.E.load((combined >> 16) & 1)
+            m.AC.load((combined << 1) & 0x1FFFF)
             parts.append("CIL")
-            changed.update({"AC", "E"})
 
-        # INC
         if bit(5):
-            self.m.AC.load(self.m.AC.value + 1)
+            m.AC.load(m.AC.value + 1)
             parts.append("INC")
-            changed.add("AC")
 
-        # SPA
         if bit(4):
-            if (self.m.AC.value & 0x8000) == 0:  # AC positive
-                self.m.PC.increment()
-                changed.add("PC")
+            if (m.AC.value & 0x8000) == 0:
+                m.PC.increment()
             parts.append("SPA")
 
-        # SNA
         if bit(3):
-            if (self.m.AC.value & 0x8000) != 0:  # AC negative
-                self.m.PC.increment()
-                changed.add("PC")
+            if (m.AC.value & 0x8000) != 0:
+                m.PC.increment()
             parts.append("SNA")
 
-        # SZA
         if bit(2):
-            if self.m.AC.value == 0:
-                self.m.PC.increment()
-                changed.add("PC")
+            if m.AC.value == 0:
+                m.PC.increment()
             parts.append("SZA")
 
-        # SZE
         if bit(1):
-            if self.m.E.value == 0:
-                self.m.PC.increment()
-                changed.add("PC")
+            if m.E.value == 0:
+                m.PC.increment()
             parts.append("SZE")
 
-        # HLT
         if bit(0):
-            self.m.S.clear()  # halt CPU
+            m.S.clear()
             parts.append("HLT")
-            changed.add("S")
 
-        self.m.finish_instruction()
+        m.finish_instruction()
 
         if not parts:
             return "T3: (no register-reference bit set)", changed

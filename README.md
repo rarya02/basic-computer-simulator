@@ -12,11 +12,17 @@ The project includes all necessary components and input files.
   * `cli/`: The **Command-Line Interface** component.
   * `gui/`: The optional **Graphical User Interface** component.
   * `assembler/`: The Python **assembler** script.
-  * `MANO SIMULATOR.py`: The main launcher script.
+  * `main.py`: The main launcher script.
   * `data/`:
       * `program.txt`: Contains **hexadecimal instructions** (automatically loaded).
       * `data.txt`: Contains optional initial **memory data** (automatically loaded).
       * `assembly_code.txt`: File for writing assembly programs.
+
+-----
+
+##  Requirements
+
+Python 3 with `tkinter` (bundled with most Python installs). No third-party packages are needed.
 
 -----
 
@@ -30,14 +36,14 @@ You can run the simulator using either pre-assembled hexadecimal files or by ass
 
 This is the fastest method if you already have the machine code.
 
-1.  Open the folder: `/Mano_Simulator/data`
+1.  Open the `data/` folder.
 2.  Edit `program.txt` to include your **hexadecimal instructions**.
 3.  Edit `data.txt` to include any initial **memory values**.
 4.  Save the files. They will be automatically loaded when you run the simulator.
 
 #### B) Running Assembly Code (Recommended)
 
-1.  Open the file: `/Mano_Simulator/data/assembly_code.txt`
+1.  Open `data/assembly_code.txt`.
 2.  Write your **VALID Mano assembly program** inside it.
 3.  Run the assembler:
     ```bash
@@ -58,15 +64,15 @@ You can start the simulator using the main launcher or by running a component di
 Run the main launcher script:
 
 ```bash
-python MANO SIMULATOR.py
+python main.py
 ```
 
 This displays a menu allowing you to select the mode:
 
 ```
 Mano Basic Computer Simulator
-1) CLI Mode
-2) GUI Mode
+1) CLI mode
+2) GUI mode
 Q) Quit
 Select mode [1/2/Q]:
 ```
@@ -82,7 +88,7 @@ Select mode [1/2/Q]:
     python -m gui.app
     ```
 
-> **Note:** If `program.txt` and `data.txt` are not present or correctly formatted in the `\Mano_Simulator\data` directory, the simulator may not behave as intended.
+> **Note:** If `program.txt` and `data.txt` are not present or correctly formatted in the `data/` directory, the simulator may not behave as intended.
 
 -----
 
@@ -119,7 +125,7 @@ The Graphical User Interface (GUI) offers an alternative, visual way to interact
 
 The assembler translates assembly code into machine code for the simulator.
 
-  * To run the assembler manually, execute `assembler.py` from the `\Mano_Simulator\assembler` directory:
+  * To run the assembler manually, run this from the project root:
     ```bash
     python assembler/assembler.py
     ```

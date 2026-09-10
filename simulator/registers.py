@@ -1,51 +1,44 @@
 class Register:
     def __init__(self, name: str, bits: int):
-        self.name = name  # register name
-        self.bits = bits  # width in bits
+        self.name = name
         self.value = 0
-        self._mask = (1 << bits) - 1  # mask for bit width
-        self.updated = False  # UI update flag
+        self._mask = (1 << bits) - 1
+        self.updated = False  # set on any write; used to report changes to the UI
 
     def load(self, val: int):
-        previous_value = self.value  # old value
-        self.value = val & self._mask  # load masked value
-        self.updated = True  # mark change
+        self.value = val & self._mask
+        self.updated = True
 
     def increment(self):
-        self.value = (self.value + 1) & self._mask  # wrap on overflow
+        self.value = (self.value + 1) & self._mask
         self.updated = True
 
     def clear(self):
-        self.value = 0  # zero register
+        self.value = 0
         self.updated = True
 
     def reset_state(self):
-        self.updated = False  # clear update flag
-
-    def __str__(self):
-        return f"0x{self.value:X}"  # hex formatting
-
-    def get_binary(self):
-        return format(self.value, f'0{self.bits}b')  # binary formatting
+        self.updated = False
 
 
 class Flag:
     def __init__(self, name: str):
         self.name = name
-        self.value = 0  # 1-bit flag
+        self.value = 0
         self.updated = False
 
-    def set(self):
-        self.value = 1  # set flag
+    def load(self, bit):
+        self.value = 1 if bit else 0
         self.updated = True
+
+    def set(self):
+        self.load(1)
 
     def clear(self):
-        self.value = 0  # clear flag
-        self.updated = True
+        self.load(0)
 
     def complement(self):
-        self.value = 1 - self.value  # flip flag
-        self.updated = True
+        self.load(not self.value)
 
     def reset_state(self):
-        self.updated = False  # clear update tracking
+        self.updated = False
