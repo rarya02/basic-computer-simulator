@@ -9,7 +9,7 @@ venv/
 node_modules/
 coverage/
 
-# PyInstaller
+# Build output
 build/
 dist/
 
@@ -17,5 +17,4 @@ dist/
 .idea/
 .vscode/
 .DS_Store
-CLAUDE.md
 CLAUDE.md
