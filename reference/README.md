@@ -30,6 +30,8 @@ Python 3 with `tkinter` (bundled with most Python installs). No third-party pack
 
 You can run the simulator using either pre-assembled hexadecimal files or by assembling your own assembly code.
 
+All commands in this README are run from the `reference/` directory.
+
 ### 1\. Preparing the Program
 
 #### A) Running with `program.txt` + `data.txt` (HEX mode)
