@@ -1,0 +1,11 @@
+{
+  // core must run unchanged under vitest and in the browser, so it sees neither
+  // DOM nor Node declarations. This also leaves `console` undeclared, which keeps
+  // the core from printing.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["**/*.ts"]
+}
