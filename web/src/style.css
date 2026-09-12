@@ -455,9 +455,57 @@ select {
   stroke-width: 2;
 }
 
+/* The bus is the bracket the registers hang off, as in Mano figure 5-4. */
 .bus {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bus-arrow {
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+.bus-box rect {
   fill: var(--unit);
   stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.bus-box text {
+  fill: var(--text);
+  font: 600 12px var(--sans);
+}
+
+.stub,
+.clock {
+  fill: none;
+  stroke: var(--wire);
+  stroke-width: 1.5;
+}
+
+.clock-input {
+  fill: var(--panel);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.junction {
+  fill: var(--wire);
+}
+
+.stub-label,
+.sel-input {
+  fill: var(--muted);
+  font: 9px var(--sans);
+}
+
+.unit-sub {
+  fill: var(--muted);
+  font: 10px var(--sans);
 }
 
 .bus-label,
@@ -470,15 +518,16 @@ select {
 .select {
   fill: var(--muted);
   font: 10px var(--mono);
-  text-anchor: middle;
-  transform: translateX(-12px);
 }
 
-.unit.driving rect,
-.bus.driving {
+.unit.driving rect {
   fill: var(--drive-soft);
   stroke: var(--drive);
   stroke-width: 2.5;
+}
+
+.bus.driving {
+  stroke: var(--drive);
 }
 
 .wire.driving {
