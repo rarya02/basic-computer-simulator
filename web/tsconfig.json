@@ -1,0 +1,11 @@
+{
+  // The DOM and WebWorker libs declare conflicting globals, so the worker entry
+  // point is checked by tsconfig.worker.json instead.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/worker.ts"]
+}

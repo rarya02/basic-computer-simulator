@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mano Basic Computer</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="transport">
+      <h1>Mano Basic Computer</h1>
+      <div class="buttons" role="toolbar" aria-label="Transport">
+        <button id="step-cycle" type="button">Step cycle</button>
+        <button id="step-instruction" type="button">Step instruction</button>
+        <button id="run" type="button" class="primary">Run</button>
+        <button id="stop" type="button">Stop</button>
+        <button id="reset" type="button">Reset</button>
+        <button id="step-back" type="button" title="Undo the last clock cycle">Step back</button>
+      </div>
+      <div class="counters">
+        <span>Cycle <strong id="cycle-count">0</strong></span>
+        <span>Instructions <strong id="instruction-count">0</strong></span>
+        <span id="run-status" class="status">Loading</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel program-panel" aria-labelledby="program-heading">
+        <h2 id="program-heading">Program</h2>
+        <div class="program-controls">
+          <label class="field">Example <select id="program"></select></label>
+          <button id="assemble" type="button" class="primary">Assemble</button>
+          <button id="open" type="button">Open file</button>
+          <button id="save" type="button">Save .asm</button>
+          <input id="file" type="file" accept=".asm,.txt,text/plain" hidden />
+          <span id="dirty" class="dirty" hidden>Unsaved edits</span>
+        </div>
+        <div class="editor">
+          <div id="gutter" class="gutter" aria-hidden="true"><div id="gutter-rows" class="gutter-rows"></div></div>
+          <div class="editor-area">
+            <div class="editor-highlights" aria-hidden="true"><div id="highlight-rows" class="highlight-rows"></div></div>
+            <textarea id="editor" class="editor-text" spellcheck="false" wrap="off" aria-label="Assembly source"></textarea>
+          </div>
+        </div>
+        <ul id="diagnostics" class="diagnostics" hidden></ul>
+      </section>
+
+      <section class="panel datapath-panel" aria-labelledby="datapath-heading">
+        <h2 id="datapath-heading">Datapath</h2>
+        <svg id="datapath" viewBox="0 0 470 540" role="img" aria-labelledby="datapath-title">
+          <title id="datapath-title">Basic Computer registers and memory around the common bus</title>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+            </marker>
+          </defs>
+
+          <rect id="bus" class="bus" x="430" y="8" width="18" height="524" rx="3" />
+          <text class="bus-label" x="439" y="270" text-anchor="middle" transform="rotate(90 439 270)">COMMON BUS</text>
+
+          <g id="unit-M" class="unit">
+            <rect x="150" y="16" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="41">Memory</text>
+            <text id="val-M" class="unit-value" x="320" y="41" text-anchor="end">M[AR] 0000</text>
+          </g>
+          <line id="in-M" class="wire" x1="430" y1="28" x2="333" y2="28" marker-end="url(#arrow)" />
+          <line id="out-M" class="wire" x1="330" y1="44" x2="428" y2="44" marker-end="url(#arrow)" />
+          <text id="sel-7" class="select" x="414" y="40">7</text>
+          <polyline id="wire-address" class="wire" points="150,94 104,94 104,36 148,36" marker-end="url(#arrow)" />
+          <text class="wire-label" x="96" y="65" text-anchor="middle" transform="rotate(-90 96 65)">address</text>
+
+          <g id="unit-AR" class="unit">
+            <rect x="150" y="74" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="99">AR</text>
+            <text id="val-AR" class="unit-value" x="320" y="99" text-anchor="end">000</text>
+          </g>
+          <line id="in-AR" class="wire" x1="430" y1="86" x2="333" y2="86" marker-end="url(#arrow)" />
+          <line id="out-AR" class="wire" x1="330" y1="102" x2="428" y2="102" marker-end="url(#arrow)" />
+          <text id="sel-1" class="select" x="414" y="98">1</text>
+
+          <g id="unit-PC" class="unit">
+            <rect x="150" y="132" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="157">PC</text>
+            <text id="val-PC" class="unit-value" x="320" y="157" text-anchor="end">000</text>
+          </g>
+          <line id="in-PC" class="wire" x1="430" y1="144" x2="333" y2="144" marker-end="url(#arrow)" />
+          <line id="out-PC" class="wire" x1="330" y1="160" x2="428" y2="160" marker-end="url(#arrow)" />
+          <text id="sel-2" class="select" x="414" y="156">2</text>
+
+          <g id="unit-DR" class="unit">
+            <rect x="150" y="190" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="215">DR</text>
+            <text id="val-DR" class="unit-value" x="320" y="215" text-anchor="end">0000</text>
+          </g>
+          <line id="in-DR" class="wire" x1="430" y1="202" x2="333" y2="202" marker-end="url(#arrow)" />
+          <line id="out-DR" class="wire" x1="330" y1="218" x2="428" y2="218" marker-end="url(#arrow)" />
+          <text id="sel-3" class="select" x="414" y="214">3</text>
+
+          <g id="unit-INPR" class="unit">
+            <rect x="20" y="248" width="100" height="40" rx="4" />
+            <text class="unit-name" x="30" y="273">INPR</text>
+            <text id="val-INPR" class="unit-value" x="112" y="273" text-anchor="end">00</text>
+          </g>
+          <g id="unit-ALU" class="unit">
+            <rect x="150" y="248" width="120" height="40" rx="4" />
+            <text class="unit-name" x="210" y="273" text-anchor="middle">Adder &amp; logic</text>
+          </g>
+          <g id="unit-E" class="unit">
+            <rect x="290" y="254" width="40" height="28" rx="4" />
+            <text class="unit-name" x="299" y="273">E</text>
+            <text id="val-E" class="unit-value" x="324" y="273" text-anchor="end">0</text>
+          </g>
+          <line id="wire-alu-e" class="wire" x1="270" y1="268" x2="290" y2="268" />
+          <line id="wire-dr-alu" class="wire" x1="210" y1="230" x2="210" y2="246" marker-end="url(#arrow)" />
+          <line id="wire-inpr-alu" class="wire" x1="120" y1="260" x2="148" y2="260" marker-end="url(#arrow)" />
+          <polyline id="wire-ac-alu" class="wire" points="150,326 136,326 136,278 148,278" marker-end="url(#arrow)" />
+          <line id="wire-alu-ac" class="wire" x1="210" y1="288" x2="210" y2="304" marker-end="url(#arrow)" />
+
+          <g id="unit-AC" class="unit">
+            <rect x="150" y="306" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="331">AC</text>
+            <text id="val-AC" class="unit-value" x="320" y="331" text-anchor="end">0000</text>
+          </g>
+          <line id="out-AC" class="wire" x1="330" y1="334" x2="428" y2="334" marker-end="url(#arrow)" />
+          <text id="sel-4" class="select" x="414" y="330">4</text>
+
+          <g id="unit-IR" class="unit">
+            <rect x="150" y="364" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="389">IR</text>
+            <text id="val-IR" class="unit-value" x="320" y="389" text-anchor="end">0000</text>
+          </g>
+          <line id="in-IR" class="wire" x1="430" y1="376" x2="333" y2="376" marker-end="url(#arrow)" />
+          <line id="out-IR" class="wire" x1="330" y1="392" x2="428" y2="392" marker-end="url(#arrow)" />
+          <text id="sel-5" class="select" x="414" y="388">5</text>
+
+          <g id="unit-TR" class="unit">
+            <rect x="150" y="422" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="447">TR</text>
+            <text id="val-TR" class="unit-value" x="320" y="447" text-anchor="end">0000</text>
+          </g>
+          <line id="in-TR" class="wire" x1="430" y1="434" x2="333" y2="434" marker-end="url(#arrow)" />
+          <line id="out-TR" class="wire" x1="330" y1="450" x2="428" y2="450" marker-end="url(#arrow)" />
+          <text id="sel-6" class="select" x="414" y="446">6</text>
+
+          <g id="unit-OUTR" class="unit">
+            <rect x="150" y="480" width="180" height="40" rx="4" />
+            <text class="unit-name" x="160" y="505">OUTR</text>
+            <text id="val-OUTR" class="unit-value" x="320" y="505" text-anchor="end">00</text>
+          </g>
+          <line id="in-OUTR" class="wire" x1="430" y1="492" x2="333" y2="492" marker-end="url(#arrow)" />
+        </svg>
+
+        <div class="legend">
+          <span class="key drive">drives the bus</span>
+          <span class="key load">loads</span>
+          <span class="key active">ALU or address path</span>
+          <span class="key changed">E changed</span>
+        </div>
+        <div class="timing" aria-label="Timing signals">
+          <span class="timing-label">Timing</span>
+          <span id="t-0" class="t">T0</span>
+          <span id="t-1" class="t">T1</span>
+          <span id="t-2" class="t">T2</span>
+          <span id="t-3" class="t">T3</span>
+          <span id="t-4" class="t">T4</span>
+          <span id="t-5" class="t">T5</span>
+          <span id="t-6" class="t">T6</span>
+          <span id="t-r" class="t t-interrupt" title="Interrupt cycle (R = 1)">R</span>
+        </div>
+        <div class="bus-select">
+          Bus select S<sub>2</sub>S<sub>1</sub>S<sub>0</sub> = <code id="select-bits">000</code>
+          <span id="select-source" class="muted">no bus transfer</span>
+        </div>
+        <h3 id="microops-label">No cycle executed yet</h3>
+        <ol id="microops" class="microops"></ol>
+      </section>
+
+      <section class="panel registers-panel" aria-labelledby="registers-heading">
+        <h2 id="registers-heading">Registers</h2>
+        <div id="registers" class="register-grid"></div>
+        <h3>Flip-flops</h3>
+        <div id="flags" class="flag-grid"></div>
+      </section>
+
+      <section class="panel memory-panel" aria-labelledby="memory-heading">
+        <h2 id="memory-heading">Memory</h2>
+        <div class="memory-header"><span></span><span>Addr</span><span>Word</span><span>Instruction</span></div>
+        <div id="memory-scroll" class="memory-scroll" tabindex="0">
+          <div id="memory-spacer" class="memory-spacer">
+            <div id="memory-rows" class="memory-rows"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel breakpoints-panel" aria-labelledby="breakpoints-heading">
+        <h2 id="breakpoints-heading">Breakpoints</h2>
+        <form id="breakpoint-form" class="breakpoint-form">
+          <select id="breakpoint-kind" aria-label="Breakpoint kind">
+            <option value="address">Address</option>
+            <option value="condition">Condition</option>
+          </select>
+          <input id="breakpoint-text" aria-label="Breakpoint" placeholder="110" autocomplete="off" />
+          <button type="submit">Add</button>
+        </form>
+        <p id="breakpoint-error" class="field-error" hidden></p>
+        <ul id="breakpoint-list" class="breakpoint-list"></ul>
+        <p id="breakpoint-empty" class="empty">None yet. Click a memory row or a source line to break there.</p>
+      </section>
+
+      <section class="panel io-panel" aria-labelledby="io-heading">
+        <h2 id="io-heading">Input and output</h2>
+        <div class="io-grid">
+          <div class="unit-cell"><span class="name">INPR</span><span class="value" id="io-inpr">00</span></div>
+          <div class="unit-cell"><span class="name">FGI</span><span class="value" id="io-fgi">0</span></div>
+          <div class="unit-cell"><span class="name">OUTR</span><span class="value" id="io-outr">00</span></div>
+          <div class="unit-cell"><span class="name">FGO</span><span class="value" id="io-fgo">1</span></div>
+          <div class="unit-cell"><span class="name">IEN</span><span class="value" id="io-ien">0</span></div>
+          <div class="unit-cell"><span class="name">R</span><span class="value" id="io-r">0</span></div>
+        </div>
+        <div class="io-controls">
+          <label class="field">Keyboard <input id="io-input" autocomplete="off" placeholder="type a key" /></label>
+          <button id="io-ready" type="button" title="The printer consumed OUTR">Printer ready</button>
+        </div>
+        <p id="io-hint" class="muted">Each key loads INPR and raises FGI.</p>
+        <h3>Output</h3>
+        <pre id="io-output" class="io-output"></pre>
+        <h3>Interrupt</h3>
+        <p id="io-interrupt" class="io-interrupt"></p>
+      </section>
+
+      <section class="panel profiler-panel" aria-labelledby="profiler-heading">
+        <h2 id="profiler-heading">Profiler</h2>
+        <dl class="stats">
+          <div><dt>Cycles</dt><dd id="profile-cycles">0</dd></div>
+          <div><dt>Instructions</dt><dd id="profile-instructions">0</dd></div>
+          <div><dt>CPI</dt><dd id="profile-cpi">n/a</dd></div>
+        </dl>
+        <h3>Instruction mix</h3>
+        <div id="instruction-mix" class="mix"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
