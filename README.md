@@ -13,15 +13,21 @@ change, so you can check your understanding against the hardware instead of agai
 
 ## Screenshots
 
-Drop images in at these paths and they will appear here.
+![The simulator paused mid instruction](docs/images/overview.png)
 
-![The simulator running a program](docs/images/overview.png)
+*Paused on T1 of a fetch: memory drives the bus, IR loads from it, and the address path from AR is lit.*
 
-![The datapath view during a memory read](docs/images/datapath.png)
+![The datapath view](docs/images/datapath.png)
 
-![Breakpoints stopping a run](docs/images/breakpoints.png)
+*The common bus datapath, with the bus select code and the microoperations for the current cycle.*
+
+![A run stopped at a breakpoint](docs/images/breakpoints.png)
+
+*A run stopped at an address breakpoint, with a second breakpoint watching a register condition.*
 
 ![The input and output panel](docs/images/io.png)
+
+*A typed key sitting in INPR, and the character the program printed through OUT.*
 
 ## Features
 
@@ -73,6 +79,26 @@ None of those paths are reached by the traced programs, which is why the traces 
 behavior is pinned by separate tests instead, next to tests for the interrupt cycle, which the Python version
 does not model at all. The rest of the suite covers the assembler diagnostics, the disassembler, reverting
 every cycle of every program back to the loaded machine, and the GUI's own state model.
+
+## How this compares with the original
+
+This started life as a Python program for a computer architecture course: a simulator with a command line
+interface and a Tkinter window, written by a team. That code is still here, unchanged, in
+[`reference/`](reference/), and the [first commit](https://github.com/rarya02/basic-computer-simulator/tree/f78f133)
+is the project as it was before the rewrite. It is kept both out of respect for where this came from and because
+it is the yardstick the rewrite is measured against.
+
+| | Original Python version | This rewrite |
+| --- | --- | --- |
+| Running it | Clone it, install Python and Tkinter, run a script | Open a URL |
+| Per cycle detail | Prints the microoperation text for the cycle | Every cycle reports its timing signal, microoperations, the register driving the bus, the register loading, memory accesses, and the exact list of values that changed |
+| Datapath | A static diagram with animated dots | The bus, registers and adder highlighted from the cycle's own data, with the S2S1S0 select code |
+| Going backwards | Not possible, only a reset | Step backwards cycle by cycle, keystrokes included |
+| Breakpoints | None | Address breakpoints and register conditions such as `AC == 0` |
+| Assembler errors | Prints a message and carries on assembling | Diagnostics with line and column, shown against the offending line, and a refusal to load a program that did not assemble |
+| Interrupts and I/O | Not modelled | INPR, OUTR, FGI, FGO, IEN and the full interrupt cycle |
+| Correctness | Indirect addressing and every I/O instruction hang the machine, and `CIL` does not rotate through E | Fixed, with tests pinning the textbook behavior |
+| Tests | None | A vitest suite, including the golden traces above |
 
 ## Assembly language
 
@@ -190,9 +216,9 @@ the full test suite, and deploys only if they pass.
 
 ## Credits
 
-This project began as a COE 341 team project written in Python, which is preserved unchanged in `reference/`.
-The TypeScript rewrite, the browser GUI, and the differential test suite against the Python implementation are
-solo work.
+This project began as a COE 341 team project written in Python, which is preserved unchanged in
+[`reference/`](reference/) and in the repository's first commit. The TypeScript rewrite, the browser GUI, and
+the differential test suite against the Python implementation are solo work.
 
 ## License
 
