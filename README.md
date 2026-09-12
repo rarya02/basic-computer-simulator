@@ -83,9 +83,11 @@ every cycle of every program back to the loaded machine, and the GUI's own state
 ## How this compares with the original
 
 This started life as a Python program for a computer architecture course: a simulator with a command line
-interface and a Tkinter window, written by a team. That code is still here, unchanged, in
-[`reference/`](reference/), and the [first commit](https://github.com/rarya02/basic-computer-simulator/tree/f78f133)
-is the project as it was before the rewrite. It is kept both out of respect for where this came from and because
+interface and a Tkinter window, written by a team in
+[Sameer7Ahmed/Mano_Simulator](https://github.com/Sameer7Ahmed/Mano_Simulator). That code is still here,
+unchanged, in [`reference/`](reference/), and the
+[first commit](https://github.com/rarya02/basic-computer-simulator/tree/f78f133) is the project as it was
+before the rewrite. It is kept both out of respect for where this came from and because
 it is the yardstick the rewrite is measured against.
 
 | | Original Python version | This rewrite |
@@ -216,8 +218,9 @@ the full test suite, and deploys only if they pass.
 
 ## Credits
 
-This project began as a COE 341 team project written in Python, which is preserved unchanged in
-[`reference/`](reference/) and in the repository's first commit. The TypeScript rewrite, the browser GUI, and
+This project began as a COE 341 team project written in Python, developed in
+[Sameer7Ahmed/Mano_Simulator](https://github.com/Sameer7Ahmed/Mano_Simulator) and preserved unchanged here in
+[`reference/`](reference/) and in this repository's first commit. The TypeScript rewrite, the browser GUI, and
 the differential test suite against the Python implementation are solo work.
 
 ## License
